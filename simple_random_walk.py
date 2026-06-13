@@ -243,3 +243,61 @@ plt.title("Long-time average comparison")
 plt.legend()
 plt.tight_layout()
 plt.show()
+
+
+# Localization metric
+
+def compute_ipr(probabilities):
+    return np.sum(probabilities ** 2, axis=1)
+
+ipr_grover = compute_ipr(probs_grover)
+ipr_random = compute_ipr(probs_random)
+
+plt.figure(figsize=(8, 4))
+plt.plot(ipr_grover, label="Eulerian Grover")
+plt.plot(ipr_random, label="Random local unitary")
+plt.xlabel("Time step")
+plt.ylabel("IPR")
+plt.title("Localization comparison")
+plt.legend()
+plt.grid(True)
+plt.show()
+
+# Entropy metric
+
+def compute_entropy(probabilities):
+    eps = 1e-12
+    return -np.sum(probabilities * np.log(probabilities + eps), axis=1)
+
+entropy_grover = compute_entropy(probs_grover)
+entropy_random = compute_entropy(probs_random)
+
+plt.figure(figsize=(8, 4))
+plt.plot(entropy_grover, label="Eulerian Grover")
+plt.plot(entropy_random, label="Random local unitary")
+plt.xlabel("Time step")
+plt.ylabel("Entropy")
+plt.title("Spreading entropy comparison")
+plt.legend()
+plt.grid(True)
+plt.show()
+
+# Spectra comparison
+
+eig_grover = np.linalg.eigvals(U_grover)
+eig_random = np.linalg.eigvals(U_random)
+
+plt.figure(figsize=(5, 5))
+plt.scatter(eig_grover.real, eig_grover.imag, label="Eulerian Grover")
+plt.scatter(eig_random.real, eig_random.imag, label="Random local unitary")
+
+circle = plt.Circle((0, 0), 1, fill=False)
+plt.gca().add_artist(circle)
+
+plt.xlabel("Re")
+plt.ylabel("Im")
+plt.title("Spectrum comparison")
+plt.axis("equal")
+plt.legend()
+plt.grid(True)
+plt.show()
