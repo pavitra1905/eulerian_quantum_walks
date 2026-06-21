@@ -91,7 +91,7 @@ def plot_most_localized_eigenvector(U, edges, title="Most localized eigenvector"
         probs.append(p)
         iprs.append(np.sum(p ** 2))
 
-    kmax = np.argmax(iprs)
+    kmax = np.argmax(iprs) # index of the most localized eigenvector
 
     plt.figure(figsize=(10, 4))
     plt.bar([str(e) for e in edges], probs[kmax])
@@ -103,7 +103,7 @@ def plot_most_localized_eigenvector(U, edges, title="Most localized eigenvector"
 
     return eigvals[kmax], eigvecs[:, kmax], iprs[kmax]
 
-edges = [
+edges3 = [
     (0, 1),
     (1, 2),
     (2, 0),
@@ -124,8 +124,10 @@ edges = [
 ]
 
 lam, phi, ipr = plot_most_localized_eigenvector(
-    U_grover, edges, "Most localized Eulerian Grover eigenmode"
+    U_grover, edges3, "Most localized Eulerian Grover eigenmode"
 )
+
+start_index = 0
 
 def eigenmode_overlaps(U, start_index):
     eigvals, eigvecs = np.linalg.eig(U)
