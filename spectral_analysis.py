@@ -110,7 +110,17 @@ edges = [
 
     (1, 3),
     (3, 4),
-    (4, 1)
+    (4, 1),
+
+    (1,5),
+    (5,6),
+    (6,1),
+
+    (0,7),
+    (7,0),
+    (7,2),
+    (2,8),
+    (8,7)
 ]
 
 lam, phi, ipr = plot_most_localized_eigenvector(
@@ -133,6 +143,7 @@ def eigenmode_overlaps(U, start_index):
 
     return eigvals, np.array(overlaps)
 
+start_index = 0
 eigvals, overlaps = eigenmode_overlaps(U_grover, start_index)
 
 plt.figure(figsize=(8, 4))
@@ -159,4 +170,117 @@ def compare_spectral_properties(U1, U2, labels=("Grover", "Random")):
 
 compare_spectral_properties(U_grover, U_random)
 
+# %%
+def plot_labeled_eigenmode_overlaps(U, start_index):
+    eigvals, eigvecs = np.linalg.eig(U)
 
+    psi0 = np.zeros(U.shape[0], dtype=complex)
+    psi0[start_index] = 1.0
+
+    overlaps = []
+
+    for k in range(eigvecs.shape[1]):
+        phi = eigvecs[:, k]
+        phi = phi / np.linalg.norm(phi)
+
+        c = np.vdot(phi, psi0)
+        overlaps.append(abs(c) ** 2)
+
+    overlaps = np.array(overlaps)
+    phases = np.angle(eigvals)
+
+    plt.figure(figsize=(9, 5))
+    plt.scatter(phases, overlaps)
+
+    for k in range(len(eigvals)):
+        plt.annotate(
+            str(k),
+            (phases[k], overlaps[k]),
+            textcoords="offset points",
+            xytext=(5, 5),
+            fontsize=9
+        )
+
+    plt.xlabel("Eigenphase")
+    plt.ylabel("Overlap with initial state")
+    plt.title("Initial-state overlap with eigenmodes")
+    plt.grid(True)
+    plt.show()
+
+    return eigvals, eigvecs, overlaps
+
+
+eigvals, eigvecs, overlaps = plot_labeled_eigenmode_overlaps(U_grover, start_index=0)
+
+
+# %%
+def print_top_overlapping_modes(U, start_index, top_n=8):
+    eigvals, eigvecs = np.linalg.eig(U)
+
+    psi0 = np.zeros(U.shape[0], dtype=complex)
+    psi0[start_index] = 1.0
+
+    rows = []
+
+    for k in range(eigvecs.shape[1]):
+        phi = eigvecs[:, k]
+        phi = phi / np.linalg.norm(phi)
+
+        c = np.vdot(phi, psi0)
+        overlap = abs(c) ** 2
+        phase = np.angle(eigvals[k])
+
+        p = np.abs(phi) ** 2
+        p = p / np.sum(p)
+        ipr = np.sum(p ** 2)
+
+        rows.append((k, phase, overlap, ipr))
+
+    rows = sorted(rows, key=lambda x: x[2], reverse=True)
+
+    print("Top overlapping eigenmodes:")
+    print("mode k | eigenphase | overlap | IPR")
+    print("--------------------------------------")
+
+    for k, phase, overlap, ipr in rows[:top_n]:
+        print(f"{k:6d} | {phase:10.4f} | {overlap:7.4f} | {ipr:7.4f}")
+
+    return rows
+
+
+rows = print_top_overlapping_modes(U_grover, start_index=0, top_n=10)
+
+# %%
+def print_eigenmode_edge_support(U, edges, mode_index, top_n=10):
+    eigvals, eigvecs = np.linalg.eig(U)
+
+    phi = eigvecs[:, mode_index]
+    phi = phi / np.linalg.norm(phi)
+
+    probs = np.abs(phi) ** 2
+    probs = probs / np.sum(probs)
+
+    ranked = sorted(
+        list(enumerate(probs)),
+        key=lambda x: x[1],
+        reverse=True
+    )
+
+    print(f"Eigenmode {mode_index}")
+    print(f"Eigenphase: {np.angle(eigvals[mode_index]):.4f}")
+    print()
+    print("Top edge support:")
+    print("edge index | edge | probability")
+    print("-------------------------------")
+
+    for edge_index, prob in ranked[:top_n]:
+        print(f"{edge_index:10d} | {edges[edge_index]} | {prob:.4f}")
+
+    return probs
+
+
+probs = print_eigenmode_edge_support(U_grover, edges, mode_index=13)
+probs = print_eigenmode_edge_support(U_grover, edges, mode_index=10)
+probs = print_eigenmode_edge_support(U_grover, edges, mode_index=0)
+probs = print_eigenmode_edge_support(U_grover, edges, mode_index=2)
+probs = print_eigenmode_edge_support(U_grover, edges, mode_index=6)
